@@ -9,3 +9,15 @@ export const CardForms: ICardForm[] = [
     { name: 'Portrait', x: 1, y: 2 },
     { name: 'Landscape', x: 2, y: 1 },
 ];
+
+export enum GameEvents {
+    CARD_FLIPPED = 'card_flipped',
+    // CARD_MATCHED = 'card_matched',
+    // CARD_REMOVED = 'card_removed',
+}
+
+export enum ErrorValues {
+    NO_CARD_VALUE = -1,
+    NO_CARD_INDEX = -1,
+    // CARD_ALREADY_FLIPPED = 'Card is already flipped',
+}

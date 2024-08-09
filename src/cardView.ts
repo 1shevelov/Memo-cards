@@ -1,22 +1,27 @@
-import { Assets, Sprite, Container, PointData, Application } from 'pixi.js';
+import { Assets, Sprite, Container, PointData, Application, EventEmitter } from 'pixi.js';
+import { GameEvents, ErrorValues } from './config';
 
-export class Card extends Container {
-    private readonly NO_VALUE = -1;
+export class CardView extends Container {
     private _backImageURL = '';
 
     private _cardImage: Sprite;
     private _cardBackImage: Sprite;
-    private _cardValue = this.NO_VALUE;
+    private _cardIndex = ErrorValues.NO_CARD_INDEX;
     private _isFaceUp = false;
 
-    constructor(app: Application, textureUrl: string, value: number) {
+    constructor(
+        app: Application,
+        events: EventEmitter,
+        textureUrl: string,
+        index: number,
+    ) {
         super();
-        this._cardValue = value;
+        this._cardIndex = index;
 
         this._backImageURL = 'back';
         this.createCard(textureUrl);
         this.interactive = true;
-        this.on('pointerdown', this.handleCardClick);
+        this.on('pointerdown', () => this.handleCardClick(events));
         app.stage.addChild(this);
         this.createCard(textureUrl);
     }
@@ -55,8 +60,11 @@ export class Card extends Container {
         this.hide();
     }
 
-    private handleCardClick(): void {
-        if (!this._isFaceUp) this.show();
-        else this.hide();
+    private handleCardClick(events: EventEmitter): void {
+        if (!this._isFaceUp) {
+            this.show();
+            events.emit(GameEvents.CARD_FLIPPED, this._cardIndex);
+        }
+        //else this.hide();
     }
 }
