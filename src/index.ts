@@ -1,4 +1,5 @@
 import { Application, Assets, AbstractRenderer, Sprite } from 'pixi.js';
+import { LoadAssets } from './assets';
 
 (async () =>
 {
@@ -18,7 +19,9 @@ import { Application, Assets, AbstractRenderer, Sprite } from 'pixi.js';
     });
     // document.body.appendChild(app.canvas);
 
-    // Load the bunny texture
+    console.log(Assets.get('back'));
+    await LoadAssets();
+    console.log(Assets.get('back'));
     const texture = await Assets.load(IMAGE_URL);
     const bunny = new Sprite(texture);
     bunny.anchor.set(0.5);
