@@ -1,27 +1,31 @@
-import { Assets, Sprite, Container, PointData } from 'pixi.js';
+import { Assets, Sprite, Container, PointData, Application } from 'pixi.js';
 
 export class Card extends Container {
     private readonly NO_VALUE = -1;
-    private readonly BACK_IMAGE_URL = '';
+    private _backImageURL = '';
 
     private _cardImage: Sprite;
     private _cardBackImage: Sprite;
     private _cardValue = this.NO_VALUE;
     private _isFaceUp = false;
 
-    constructor(textureUrl: string, value: number) {
+    constructor(app: Application, textureUrl: string, value: number) {
         super();
         this._cardValue = value;
 
+        this._backImageURL = 'back';
         this.createCard(textureUrl);
         this.interactive = true;
         this.on('pointerdown', this.handleCardClick);
+        app.stage.addChild(this);
+        this.createCard(textureUrl);
     }
 
     public changeSize(size: PointData): void {
-        this.setSize(size.x, size.y);
-        this._cardImage.scale = Math.min(size.x / this._cardImage.x, size.y / this._cardImage.y);
-        this._cardBackImage.scale = Math.min(size.x / this._cardBackImage.x, size.y / this._cardBackImage.y);
+        this._cardImage.scale = Math.min(size.x / this._cardImage.width, size.y / this._cardImage.height);
+        this._cardBackImage.scale = Math.min(size.x / this._cardBackImage.width, size.y / this._cardBackImage.height);
+        // console.log(size.x, size.y, this._cardBackImage.scale.x, this._cardBackImage.width, this._cardBackImage.height);
+        this.setSize(this._cardBackImage.width, this._cardBackImage.height);
     }
 
     public changePosition(pos: PointData): void {
@@ -29,13 +33,13 @@ export class Card extends Container {
         this.y = pos.y;
     }
 
-    private show(): void {
+    public show(): void {
         this._cardImage.visible = true;
         this._cardBackImage.visible = false;
         this._isFaceUp = true;
     }
 
-    private hide(): void {
+    public hide(): void {
         this._cardImage.visible = false;
         this._cardBackImage.visible = true;
         this._isFaceUp = false;
@@ -43,7 +47,9 @@ export class Card extends Container {
 
     private createCard(textureUrl: string): void {
         this._cardImage = new Sprite(Assets.get(textureUrl));
-        this._cardBackImage = new Sprite(Assets.get(this.BACK_IMAGE_URL));
+        this._cardImage.anchor.set(0.5);
+        this._cardBackImage = new Sprite(Assets.get(this._backImageURL));
+        this._cardBackImage.anchor.set(0.5);
         this.addChild(this._cardBackImage);
         this.addChild(this._cardImage);
         this.hide();
@@ -51,5 +57,6 @@ export class Card extends Container {
 
     private handleCardClick(): void {
         if (!this._isFaceUp) this.show();
+        else this.hide();
     }
 }
