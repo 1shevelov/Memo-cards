@@ -12,8 +12,8 @@ export const CardForms: ICardForm[] = [
 
 export enum GameEvents {
     CARD_FLIPPED = 'card_flipped',
-    // CARD_MATCHED = 'card_matched',
-    // CARD_REMOVED = 'card_removed',
+    CARDS_NOT_MATCHED = 'cards_not_matched',
+    CARDS_MATCHED = 'cards_matched',
 }
 
 export enum ErrorValues {

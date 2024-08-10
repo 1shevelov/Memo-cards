@@ -2,35 +2,33 @@ import { Assets, Sprite, Container, PointData, Application, EventEmitter } from 
 import { GameEvents, ErrorValues } from './config';
 
 export class CardView extends Container {
-    private _backImageURL = '';
+    private backImageURL = '';
 
-    private _cardImage: Sprite;
-    private _cardBackImage: Sprite;
-    private _cardIndex = ErrorValues.NO_CARD_INDEX;
-    private _isFaceUp = false;
+    private cardImage: Sprite;
+    private cardBackImage: Sprite;
+    private cardIndex = ErrorValues.NO_CARD_INDEX;
+    private isFaceUp = false;
 
     constructor(
-        app: Application,
         events: EventEmitter,
         textureUrl: string,
         index: number,
     ) {
         super();
-        this._cardIndex = index;
+        this.cardIndex = index;
 
-        this._backImageURL = 'back';
+        this.backImageURL = 'back';
         this.createCard(textureUrl);
         this.interactive = true;
         this.on('pointerdown', () => this.handleCardClick(events));
-        app.stage.addChild(this);
         this.createCard(textureUrl);
     }
 
     public changeSize(size: PointData): void {
-        this._cardImage.scale = Math.min(size.x / this._cardImage.width, size.y / this._cardImage.height);
-        this._cardBackImage.scale = Math.min(size.x / this._cardBackImage.width, size.y / this._cardBackImage.height);
+        this.cardImage.scale = Math.min(size.x / this.cardImage.width, size.y / this.cardImage.height);
+        this.cardBackImage.scale = Math.min(size.x / this.cardBackImage.width, size.y / this.cardBackImage.height);
         // console.log(size.x, size.y, this._cardBackImage.scale.x, this._cardBackImage.width, this._cardBackImage.height);
-        this.setSize(this._cardBackImage.width, this._cardBackImage.height);
+        this.setSize(this.cardBackImage.width, this.cardBackImage.height);
     }
 
     public changePosition(pos: PointData): void {
@@ -39,32 +37,36 @@ export class CardView extends Container {
     }
 
     public show(): void {
-        this._cardImage.visible = true;
-        this._cardBackImage.visible = false;
-        this._isFaceUp = true;
+        this.cardImage.visible = true;
+        this.cardBackImage.visible = false;
+        this.isFaceUp = true;
     }
 
     public hide(): void {
-        this._cardImage.visible = false;
-        this._cardBackImage.visible = true;
-        this._isFaceUp = false;
+        this.cardImage.visible = false;
+        this.cardBackImage.visible = true;
+        this.isFaceUp = false;
+    }
+
+    public remove(): void {
+        this.parent.removeChild(this);
+        this.destroy();
     }
 
     private createCard(textureUrl: string): void {
-        this._cardImage = new Sprite(Assets.get(textureUrl));
-        this._cardImage.anchor.set(0.5);
-        this._cardBackImage = new Sprite(Assets.get(this._backImageURL));
-        this._cardBackImage.anchor.set(0.5);
-        this.addChild(this._cardBackImage);
-        this.addChild(this._cardImage);
+        this.cardImage = new Sprite(Assets.get(textureUrl));
+        this.cardImage.anchor.set(0.5);
+        this.cardBackImage = new Sprite(Assets.get(this.backImageURL));
+        this.cardBackImage.anchor.set(0.5);
+        this.addChild(this.cardBackImage);
+        this.addChild(this.cardImage);
         this.hide();
     }
 
     private handleCardClick(events: EventEmitter): void {
-        if (!this._isFaceUp) {
+        if (!this.isFaceUp) {
             this.show();
-            events.emit(GameEvents.CARD_FLIPPED, this._cardIndex);
+            events.emit(GameEvents.CARD_FLIPPED, this.cardIndex);
         }
-        //else this.hide();
     }
 }

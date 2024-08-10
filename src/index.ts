@@ -41,7 +41,7 @@ import { GameOfCards } from "./gameOfCards";
   // bunny.scale = Math.min(150 / bunny.width, 150 / bunny.height);
 
   // console.log(Assets.get('back'));
-  const gameOfCards = new GameOfCards(4);
+  const gameOfCards = new GameOfCards(events, 4);
   new FieldView(app, events, gameOfCards.getCards());
 
   app.ticker.add((time) => {

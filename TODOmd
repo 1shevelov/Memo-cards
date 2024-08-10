@@ -1,0 +1,18 @@
+Project:
+ - sort out Prettier config & VSCode
+
+Logic:
+ - make moves counter
+ - restart(reload?) game on finish
+ - randomize pairs number on start
+
+Visuals:
+ - add moves counter
+ - add animation for:
+  - card turn
+  - cards deal
+  - victory
+
+Later:
+ - allow to choose difficulty on start
+ - more card faces
