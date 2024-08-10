@@ -1,6 +1,7 @@
 import { Application, Container, Assets, EventEmitter } from "pixi.js";
 import { CardView } from "./cardView";
-import { GameEvents } from "./config";
+import { GameEvents, shuffleArray } from "./config";
+import { getAllFaces } from "./assets";
 
 export class FieldView extends Container {
   private app: Application;
@@ -13,6 +14,7 @@ export class FieldView extends Container {
   private readonly HOR_BORDER = [100, 100];
   private readonly GAP = 0.2; // of the card size
   private readonly rowsMax = [6, 12, 18, 24];
+  private readonly CARDS_SHOW_DELAY = 2000;
 
   constructor(app: Application, events: EventEmitter, cards: number[]) {
     super();
@@ -42,6 +44,8 @@ export class FieldView extends Container {
   }
 
   private makeField(cards: number[]): void {
+    let allFaces = getAllFaces();
+    allFaces = shuffleArray(allFaces);
     const cardSizeX =
       (this.app.screen.width - this.HOR_BORDER[0] - this.HOR_BORDER[1]) /
       (this.cols * (this.GAP + 1) - this.GAP);
@@ -61,7 +65,7 @@ export class FieldView extends Container {
           this.VERT_BORDER[0] +
           cardSizeY * 0.5 +
           j * cardSizeY * (1 + this.GAP);
-        card = new CardView(this.events, "clubs7", cardsIndex);
+        card = new CardView(this.events, allFaces[cards[cardsIndex]], cardsIndex);
         card.changeSize({ x: cardSizeX, y: cardSizeY });
         card.changePosition({ x, y });
         this.addChild(card);
@@ -73,11 +77,19 @@ export class FieldView extends Container {
 
   private handleCardsNotMatched(openedCardsIndices: number[]): void {
     console.log(`Cards not matched: ${openedCardsIndices.join(", ")}`);
-    openedCardsIndices.forEach((i) => this.field[i].hide());
+    this.events.emit(GameEvents.PAUSED);
+    setTimeout(() => {
+      openedCardsIndices.forEach((i) => this.field[i].hide());
+      this.events.emit(GameEvents.RESUMED);
+    }, this.CARDS_SHOW_DELAY);
   }
 
   private handleCardsMatched(openedCardsIndices: number[]): void {
     console.log(`Cards matched: ${openedCardsIndices.join(", ")} !`);
-    openedCardsIndices.forEach((i) => this.field[i].remove());
+    this.events.emit(GameEvents.PAUSED);
+    setTimeout(() => {
+      openedCardsIndices.forEach((i) => this.field[i].remove());
+      this.events.emit(GameEvents.RESUMED);
+    }, this.CARDS_SHOW_DELAY);
   }
 }

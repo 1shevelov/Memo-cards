@@ -1,9 +1,7 @@
 import {
   Application,
-  Assets,
   AbstractRenderer,
-  Sprite,
-  Container,
+  // Assets,
   EventEmitter,
 } from "pixi.js";
 import { LoadAssets } from "./assets";
@@ -28,20 +26,15 @@ import { GameOfCards } from "./gameOfCards";
   });
   // document.body.appendChild(app.canvas);
 
-  await LoadAssets();
+  await LoadAssets()
+  // .then(() => {
+  //   console.log("Assets loaded");
+  //   const gameOfCards = new GameOfCards(events);
+  //   new FieldView(app, events, gameOfCards.getCards());
+  // });
   // console.log(Assets.cache);
-  // const bunny = new Sprite(Assets.get('clubs7'));
-  // bunny.anchor.set(0.5);
-  // const cont = new Container();
-  // cont.addChild(bunny);
-  // cont.x = app.screen.width / 2;
-  // cont.y = app.screen.height / 2;
 
-  // app.stage.addChild(cont);
-  // bunny.scale = Math.min(150 / bunny.width, 150 / bunny.height);
-
-  // console.log(Assets.get('back'));
-  const gameOfCards = new GameOfCards(events, 4);
+  const gameOfCards = new GameOfCards(events);
   new FieldView(app, events, gameOfCards.getCards());
 
   app.ticker.add((time) => {

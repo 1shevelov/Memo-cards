@@ -7,7 +7,9 @@ Logic:
  - randomize pairs number on start
 
 Visuals:
+ - show "It's a match" message
  - add moves counter
+ - add game paused animation
  - add animation for:
   - card turn
   - cards deal

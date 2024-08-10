@@ -1,5 +1,6 @@
 import { EventEmitter } from 'pixi.js';
-import { GameEvents, ErrorValues } from './config';
+import { GameEvents, ErrorValues, shuffleArray, getRandomIntInclusive } from './config';
+import { MAX_DIFF_PICS } from './config';
 
 // can be 3 or more later
 export const CARDS_TO_OPEN = 2;
@@ -9,9 +10,9 @@ export class GameOfCards {
     private cards: number[] = [];
     private openedCardsIndices: number[] = [];
 
-    constructor(events: EventEmitter, pairsNum: number) {
+    constructor(events: EventEmitter) {
         this.events = events;
-        this.generateDeck(pairsNum);
+        this.generateDeck();
         this.events.on(GameEvents.CARD_FLIPPED, this.handleCardFlip);
     }
 
@@ -19,20 +20,15 @@ export class GameOfCards {
         return this.cards;
     }
 
-    private generateDeck(pairsNum: number): void {
-        // const deck = Array.from({ length: pairsNum * 2 }, (_, i) => i + 1);
+    private generateDeck(): void {
+        const pairsNum = getRandomIntInclusive(MAX_DIFF_PICS / 2, MAX_DIFF_PICS);
         const deck: number[] = [];
-        for (let i = 1; i <= pairsNum; i++) {
+        for (let i = 0; i < pairsNum; i++) {
             for (let j = 1; j <= CARDS_TO_OPEN; j++)
                 deck.push(i);
         }
-        // this.cards = deck.sort(() => Math.random() - 0.5);
-        for (let i = deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[j]] = [deck[j], deck[i]];
-        }
-        this.cards = deck;
-        console.log(this.cards);
+        this.cards = shuffleArray(deck);
+        // console.log(this.cards);
     }
 
     private handleCardFlip = (cardIndex: number): void => {
@@ -40,7 +36,7 @@ export class GameOfCards {
             console.error(`Card at index ${cardIndex} is not initialized.`);
             return;
         }
-        console.log(`Flipped card #${cardIndex}`);
+        // console.log(`Flipped card #${cardIndex}`);
         this.openedCardsIndices.push(cardIndex);
         if (this.openedCardsIndices.length === CARDS_TO_OPEN) {
             for (let i = 1; i < this.openedCardsIndices.length; i++)

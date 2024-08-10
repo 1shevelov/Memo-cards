@@ -2,12 +2,13 @@ import { Assets, Sprite, Container, PointData, Application, EventEmitter } from 
 import { GameEvents, ErrorValues } from './config';
 
 export class CardView extends Container {
+    private events: EventEmitter;
     private backImageURL = '';
-
     private cardImage: Sprite;
     private cardBackImage: Sprite;
     private cardIndex = ErrorValues.NO_CARD_INDEX;
     private isFaceUp = false;
+    private isGamePaused = false;
 
     constructor(
         events: EventEmitter,
@@ -15,13 +16,18 @@ export class CardView extends Container {
         index: number,
     ) {
         super();
+        this.events = events;
         this.cardIndex = index;
 
-        this.backImageURL = 'back';
+        this.backImageURL = 'green';
         this.createCard(textureUrl);
         this.interactive = true;
-        this.on('pointerdown', () => this.handleCardClick(events));
+        this.on('pointerdown', this.handleCardClick, this);
         this.createCard(textureUrl);
+        // console.log(textureUrl, index);
+
+        events.on(GameEvents.PAUSED, () => this.isGamePaused = true);
+        events.on(GameEvents.RESUMED, () => this.isGamePaused = false);
     }
 
     public changeSize(size: PointData): void {
@@ -63,10 +69,10 @@ export class CardView extends Container {
         this.hide();
     }
 
-    private handleCardClick(events: EventEmitter): void {
-        if (!this.isFaceUp) {
+    private handleCardClick(): void {
+        if (!this.isFaceUp && !this.isGamePaused) {
             this.show();
-            events.emit(GameEvents.CARD_FLIPPED, this.cardIndex);
+            this.events.emit(GameEvents.CARD_FLIPPED, this.cardIndex);
         }
     }
 }
