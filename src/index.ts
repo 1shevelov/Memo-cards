@@ -7,6 +7,7 @@ import {
 import { LoadAssets } from "./assets";
 import { FieldView } from "./fieldView";
 import { GameOfCards } from "./gameOfCards";
+import { GameUI } from "./gameUI";
 
 (async () => {
 	const CANVAS_ID = "game-canvas";
@@ -14,7 +15,8 @@ import { GameOfCards } from "./gameOfCards";
 	AbstractRenderer.defaultOptions.roundPixels = true; // Crisp pixels
 	// AbstractRenderer.defaultOptions.resolution = window.devicePixelRatio || 1; // Crisp pixels
 
-	const events = new EventEmitter();
+	const gameEvents = new EventEmitter();
+	const uiEvents = new EventEmitter();
 
 	// Initialize the application
 	await app.init({
@@ -34,8 +36,9 @@ import { GameOfCards } from "./gameOfCards";
 	// });
 	// console.log(Assets.cache);
 
-	const gameOfCards = new GameOfCards(events);
-	new FieldView(app, events, gameOfCards.getCards());
+	const gameOfCards = new GameOfCards(gameEvents, uiEvents);
+	new FieldView(app, gameEvents, gameOfCards.getCards());
+	new GameUI(app, uiEvents);
 
 	app.ticker.add((time) => {
 		// * Delta is 1 if running at 100% performance *

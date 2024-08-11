@@ -1,5 +1,7 @@
 export const MAX_DIFF_PICS = 8;
 
+export const CARDS_SHOW_DELAY = 3000;
+
 // export interface ICardForm {
 //     name: string;
 //     x: number;

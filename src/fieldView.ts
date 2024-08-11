@@ -1,20 +1,24 @@
 import { Application, Container, Assets, EventEmitter } from "pixi.js";
 import { CardView } from "./cardView";
-import { GameEvents, shuffleArray } from "./config";
+import { CARDS_SHOW_DELAY, GameEvents, shuffleArray } from "./config";
 import { getAllFaces } from "./assets";
 
 export class FieldView extends Container {
+	private readonly VERT_BORDER = [100, 100];
+	private readonly HOR_BORDER = [100, 100];
+	private readonly GAP = 0.2; // of the card size
+	private readonly rowsMax = [6, 12, 18, 24];
+	
 	private app: Application;
 	private events: EventEmitter;
 	private rows: number;
 	private cols: number;
 	private field: CardView[] = [];
 
-	private readonly VERT_BORDER = [100, 100];
-	private readonly HOR_BORDER = [100, 100];
-	private readonly GAP = 0.2; // of the card size
-	private readonly rowsMax = [6, 12, 18, 24];
-	private readonly CARDS_SHOW_DELAY = 2000;
+	private delayTimer: any;
+	private isDelayedRemove = false;
+	private isDelayedHide = false;
+	private openedCardsIndices: number[] = [];
 
 	constructor(app: Application, events: EventEmitter, cards: number[]) {
 		super();
@@ -26,6 +30,7 @@ export class FieldView extends Container {
 
 		this.events.on(GameEvents.CARDS_NOT_MATCHED, this.handleCardsNotMatched, this);
 		this.events.on(GameEvents.CARDS_MATCHED, this.handleCardsMatched, this);
+		events.on(GameEvents.CARD_FLIPPED, this.removeDelay, this);
 	}
 
 	private configureField(cardCount: number): void {
@@ -71,20 +76,42 @@ export class FieldView extends Container {
 	}
 
 	private handleCardsNotMatched(openedCardsIndices: number[]): void {
-		console.log(`Cards not matched: ${openedCardsIndices.join(", ")}`);
-		this.events.emit(GameEvents.PAUSED);
-		setTimeout(() => {
+		// console.log(`Cards not matched: ${openedCardsIndices.join(", ")}`);
+		this.isDelayedHide = true;
+		this.openedCardsIndices = openedCardsIndices;
+		this.delayTimer = setTimeout(() => {
 			openedCardsIndices.forEach((i) => this.field[i].hide());
-			this.events.emit(GameEvents.RESUMED);
-		}, this.CARDS_SHOW_DELAY);
+			this.openedCardsIndices = [];
+			this.isDelayedHide = false;
+			this.delayTimer = null;
+		}, CARDS_SHOW_DELAY);
 	}
 
 	private handleCardsMatched(openedCardsIndices: number[]): void {
-		console.log(`Cards matched: ${openedCardsIndices.join(", ")} !`);
-		this.events.emit(GameEvents.PAUSED);
-		setTimeout(() => {
+		// console.log(`Cards matched: ${openedCardsIndices.join(", ")} !`);
+		this.isDelayedRemove = true;
+		this.openedCardsIndices = openedCardsIndices;
+		this.delayTimer = setTimeout(() => {
 			openedCardsIndices.forEach((i) => this.field[i].remove());
-			this.events.emit(GameEvents.RESUMED);
-		}, this.CARDS_SHOW_DELAY);
+			this.openedCardsIndices = [];
+			this.isDelayedRemove = false;
+			this.delayTimer = null;
+		}, CARDS_SHOW_DELAY);
+	}
+
+	private removeDelay(): void {
+		console.log("DelayTimer: ", this.delayTimer);
+		if (this.delayTimer) {
+			clearTimeout(this.delayTimer);
+			this.delayTimer = null;
+			if (this.isDelayedHide) {
+				this.isDelayedHide = false;
+                this.openedCardsIndices.forEach((i) => this.field[i].hide());
+            } else if (this.isDelayedRemove) {
+				this.isDelayedRemove = false;
+				this.openedCardsIndices.forEach((i) => this.field[i].remove());
+			}
+			this.openedCardsIndices = [];
+		}
 	}
 }

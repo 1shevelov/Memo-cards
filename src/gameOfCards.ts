@@ -1,19 +1,23 @@
 import { EventEmitter } from 'pixi.js';
 import { GameEvents, ErrorValues, shuffleArray, getRandomIntInclusive } from './config';
 import { MAX_DIFF_PICS } from './config';
+import { UiEvents } from './gameUI';
 
 // can be 3 or more later
 export const CARDS_TO_OPEN = 2;
 
 export class GameOfCards {
-    private events: EventEmitter;
+    private gameEvents: EventEmitter;
+    private uiEvents: EventEmitter;
     private cards: number[] = [];
     private openedCardsIndices: number[] = [];
+    private moveCounter = 0;
 
-    constructor(events: EventEmitter) {
-        this.events = events;
+    constructor(gameEvents: EventEmitter, uiEvents: EventEmitter) {
+        this.gameEvents = gameEvents;
+        this.uiEvents = uiEvents;
         this.generateDeck();
-        this.events.on(GameEvents.CARD_FLIPPED, this.handleCardFlip);
+        this.gameEvents.on(GameEvents.CARD_FLIPPED, this.handleCardFlip);
     }
 
     public getCards(): number[] {
@@ -36,16 +40,19 @@ export class GameOfCards {
             console.error(`Card at index ${cardIndex} is not initialized.`);
             return;
         }
+        this.moveCounter++;
+        this.uiEvents.emit(UiEvents.SET_COUNTER, this.moveCounter);
         // console.log(`Flipped card #${cardIndex}`);
         this.openedCardsIndices.push(cardIndex);
         if (this.openedCardsIndices.length === CARDS_TO_OPEN) {
             for (let i = 1; i < this.openedCardsIndices.length; i++)
                 if (this.cards[this.openedCardsIndices[0]] !== this.cards[this.openedCardsIndices[i]]) {
-                    this.events.emit(GameEvents.CARDS_NOT_MATCHED, this.openedCardsIndices);
+                    this.gameEvents.emit(GameEvents.CARDS_NOT_MATCHED, this.openedCardsIndices);
                     this.openedCardsIndices = [];
                     return;
                 }
-            this.events.emit(GameEvents.CARDS_MATCHED, this.openedCardsIndices);
+            this.gameEvents.emit(GameEvents.CARDS_MATCHED, this.openedCardsIndices);
+            this.uiEvents.emit(UiEvents.SHOW_MATCH_MESSAGE);
             this.openedCardsIndices = [];
         }
     };

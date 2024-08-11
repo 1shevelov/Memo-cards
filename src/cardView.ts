@@ -8,7 +8,6 @@ export class CardView extends Container {
     private cardBackImage: Sprite;
     private cardIndex = ErrorValues.NO_CARD_INDEX;
     private isFaceUp = false;
-    private isGamePaused = false;
 
     constructor(
         events: EventEmitter,
@@ -25,9 +24,6 @@ export class CardView extends Container {
         this.on('pointerdown', this.handleCardClick, this);
         this.createCard(textureUrl);
         // console.log(textureUrl, index);
-
-        events.on(GameEvents.PAUSED, () => this.isGamePaused = true);
-        events.on(GameEvents.RESUMED, () => this.isGamePaused = false);
     }
 
     public changeSize(size: PointData): void {
@@ -70,7 +66,7 @@ export class CardView extends Container {
     }
 
     private handleCardClick(): void {
-        if (!this.isFaceUp && !this.isGamePaused) {
+        if (!this.isFaceUp) {
             this.show();
             this.events.emit(GameEvents.CARD_FLIPPED, this.cardIndex);
         }
