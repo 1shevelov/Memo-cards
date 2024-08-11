@@ -17,7 +17,7 @@ export class GameOfCards {
         this.gameEvents = gameEvents;
         this.uiEvents = uiEvents;
         this.generateDeck();
-        this.gameEvents.on(GameEvents.CARD_FLIPPED, this.handleCardFlip);
+        this.gameEvents.on(GameEvents.CARD_FLIPPED, this.handleCardFlip, this);
     }
 
     public getCards(): number[] {
@@ -35,7 +35,7 @@ export class GameOfCards {
         // console.log(this.cards);
     }
 
-    private handleCardFlip = (cardIndex: number): void => {
+    private handleCardFlip (cardIndex: number): void {
         if (this.cards[cardIndex] === ErrorValues.NO_CARD_VALUE) {
             console.error(`Card at index ${cardIndex} is not initialized.`);
             return;

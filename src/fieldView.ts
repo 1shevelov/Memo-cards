@@ -99,9 +99,9 @@ export class FieldView extends Container {
 		}, CARDS_SHOW_DELAY);
 	}
 
-	private removeDelay(): void {
-		console.log("DelayTimer: ", this.delayTimer);
-		if (this.delayTimer) {
+	private removeDelay(cardIndex: number): void {
+		// check that clicked card is not the same as one of the opened cards
+		if (this.delayTimer && !this.openedCardsIndices.includes(cardIndex)) {
 			clearTimeout(this.delayTimer);
 			this.delayTimer = null;
 			if (this.isDelayedHide) {
