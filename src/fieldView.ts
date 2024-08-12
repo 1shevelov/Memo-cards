@@ -2,6 +2,7 @@ import { Application, Container, Assets, EventEmitter } from "pixi.js";
 import { CardView } from "./cardView";
 import { CARDS_SHOW_DELAY, GameEvents, shuffleArray } from "./config";
 import { getAllFaces } from "./assets";
+import { UiEvents } from "./gameUI";
 
 export class FieldView extends Container {
 	private readonly VERT_BORDER = [100, 100];
@@ -10,7 +11,7 @@ export class FieldView extends Container {
 	private readonly rowsMax = [6, 12, 18, 24];
 	
 	private app: Application;
-	private events: EventEmitter;
+	private gameEvents: EventEmitter;
 	private rows: number;
 	private cols: number;
 	private field: CardView[] = [];
@@ -20,17 +21,18 @@ export class FieldView extends Container {
 	private isDelayedHide = false;
 	private openedCardsIndices: number[] = [];
 
-	constructor(app: Application, events: EventEmitter, cards: number[]) {
+	constructor(app: Application, gameEvents: EventEmitter, uiEvents: EventEmitter, cards: number[]) {
 		super();
 		this.app = app;
-		this.events = events;
+		this.gameEvents = gameEvents;
 		this.configureField(cards.length);
 		this.makeField(cards);
 		this.app.stage.addChild(this);
 
-		this.events.on(GameEvents.CARDS_NOT_MATCHED, this.handleCardsNotMatched, this);
-		this.events.on(GameEvents.CARDS_MATCHED, this.handleCardsMatched, this);
-		events.on(GameEvents.CARD_FLIPPED, this.removeDelay, this);
+		this.gameEvents.on(GameEvents.CARDS_NOT_MATCHED, this.handleCardsNotMatched, this);
+		this.gameEvents.on(GameEvents.CARDS_MATCHED, this.handleCardsMatched, this);
+		this.gameEvents.on(GameEvents.CARD_FLIPPED, this.removeDelay, this);
+		uiEvents.on(UiEvents.RELOAD_GAME, this.destroyFieldView, this);
 	}
 
 	private configureField(cardCount: number): void {
@@ -65,7 +67,7 @@ export class FieldView extends Container {
 					this.VERT_BORDER[0] +
 					cardSizeY * 0.5 +
 					j * cardSizeY * (1 + this.GAP);
-				card = new CardView(this.events, allFaces[cards[cardsIndex]], cardsIndex);
+				card = new CardView(this.gameEvents, allFaces[cards[cardsIndex]], cardsIndex);
 				card.changeSize({ x: cardSizeX, y: cardSizeY });
 				card.changePosition({ x, y });
 				this.addChild(card);
@@ -113,5 +115,10 @@ export class FieldView extends Container {
 			}
 			this.openedCardsIndices = [];
 		}
+	}
+
+	private destroyFieldView(): void {
+		this.parent.removeChild(this);
+        this.destroy();
 	}
 }

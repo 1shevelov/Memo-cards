@@ -7,7 +7,7 @@ import {
 import { LoadAssets } from "./assets";
 import { FieldView } from "./fieldView";
 import { GameOfCards } from "./gameOfCards";
-import { GameUI } from "./gameUI";
+import { GameUI, UiEvents } from "./gameUI";
 
 (async () => {
 	const CANVAS_ID = "game-canvas";
@@ -36,9 +36,16 @@ import { GameUI } from "./gameUI";
 	// });
 	// console.log(Assets.cache);
 
-	const gameOfCards = new GameOfCards(gameEvents, uiEvents);
-	new FieldView(app, gameEvents, gameOfCards.getCards());
-	new GameUI(app, uiEvents);
+	startGame();
+
+	function startGame(): void {
+		gameEvents.removeAllListeners();
+		uiEvents.removeAllListeners();
+		uiEvents.on(UiEvents.RELOAD_GAME, () => startGame());
+		const gameOfCards = new GameOfCards(gameEvents, uiEvents);
+        new FieldView(app, gameEvents, uiEvents, gameOfCards.getCards());
+        new GameUI(app, uiEvents);
+    }
 
 	app.ticker.add((time) => {
 		// * Delta is 1 if running at 100% performance *

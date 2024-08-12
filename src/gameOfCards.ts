@@ -1,6 +1,6 @@
 import { EventEmitter } from 'pixi.js';
 import { GameEvents, ErrorValues, shuffleArray, getRandomIntInclusive } from './config';
-import { MAX_DIFF_PICS } from './config';
+import { MAX_DIFF_PICS, CARDS_SHOW_DELAY } from './config';
 import { UiEvents } from './gameUI';
 
 // can be 3 or more later
@@ -12,6 +12,7 @@ export class GameOfCards {
     private cards: number[] = [];
     private openedCardsIndices: number[] = [];
     private moveCounter = 0;
+    private pairs2Found = 0;
 
     constructor(gameEvents: EventEmitter, uiEvents: EventEmitter) {
         this.gameEvents = gameEvents;
@@ -26,6 +27,7 @@ export class GameOfCards {
 
     private generateDeck(): void {
         const pairsNum = getRandomIntInclusive(MAX_DIFF_PICS / 2, MAX_DIFF_PICS);
+        this.pairs2Found = pairsNum;
         const deck: number[] = [];
         for (let i = 0; i < pairsNum; i++) {
             for (let j = 1; j <= CARDS_TO_OPEN; j++)
@@ -54,6 +56,12 @@ export class GameOfCards {
             this.gameEvents.emit(GameEvents.CARDS_MATCHED, this.openedCardsIndices);
             this.uiEvents.emit(UiEvents.SHOW_MATCH_MESSAGE);
             this.openedCardsIndices = [];
+            this.pairs2Found--;
+            if (this.pairs2Found === 0)
+                setTimeout(
+                    () => this.uiEvents.emit(UiEvents.SHOW_RELOAD),
+                    CARDS_SHOW_DELAY
+                );
         }
-    };
+    }
 }

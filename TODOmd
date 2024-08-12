@@ -1,8 +1,6 @@
 Project:
 
 Logic:
- - restart(reload?) game on finish
- - resume game on click (fix not showing second card)
 
 Visuals:
  - add game paused animation

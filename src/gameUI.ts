@@ -1,10 +1,12 @@
-import { Application, Container, EventEmitter, Text } from "pixi.js";
+import { Application, Assets, Container, EventEmitter, Sprite, Text } from "pixi.js";
 import { CARDS_SHOW_DELAY } from "./config";
 
 export enum UiEvents {
 	SET_COUNTER = "set_counter",
     RESET_COUNTER = "reset_counter",
 	SHOW_MATCH_MESSAGE = "show_match_message",
+	SHOW_RELOAD = "show_reload",
+	RELOAD_GAME = "reload_game",
 };
 
 export class GameUI extends Container {
@@ -13,18 +15,24 @@ export class GameUI extends Container {
 	private uiEvents: EventEmitter;
 	private counter: Text;
 	private matchMesage: Text;
+	private reloadButton: Sprite;
+	private reloadButtonActive: boolean = false;
 
 	constructor(app: Application, uiEvents: EventEmitter) {
 		super();
-
 		this.uiEvents = uiEvents;
 		this.create(app);
 		this.setCounter(this.COUNTER_STARTING_VALUE);
 		app.stage.addChild(this);
 
-		uiEvents.on(UiEvents.SET_COUNTER, this.setCounter, this);
-        uiEvents.on(UiEvents.RESET_COUNTER, () => this.setCounter(this.COUNTER_STARTING_VALUE));
-		uiEvents.on(UiEvents.SHOW_MATCH_MESSAGE, this.showMatchMessage, this);
+		this.uiEvents.on(UiEvents.SET_COUNTER, this.setCounter, this);
+        this.uiEvents.on(UiEvents.RESET_COUNTER, () => this.setCounter(this.COUNTER_STARTING_VALUE));
+		this.uiEvents.on(UiEvents.SHOW_MATCH_MESSAGE, this.showMatchMessage, this);
+		this.uiEvents.on(UiEvents.SHOW_RELOAD, () => this.reloadButton.visible = true);
+
+		app.ticker.add((time) => {
+			if (this.reloadButtonActive) this.reloadButton.rotation += 0.01 * time.deltaTime;
+		});
 	}
 
 	private showMatchMessage(): void {
@@ -67,5 +75,25 @@ export class GameUI extends Container {
 		this.matchMesage.y = app.screen.height - 60;
 		this.matchMesage.visible = false;
 		this.addChild(this.matchMesage);
+
+		this.reloadButton = new Sprite(Assets.get("reload"));
+        this.reloadButton.anchor.set(0.5);
+		this.reloadButton.x = app.screen.width / 2;
+		this.reloadButton.y = app.screen.height / 2;
+		this.reloadButton.visible = false;
+		this.reloadButton.interactive = true;
+		this.reloadButton.cursor = 'pointer';
+		this.reloadButton.on("pointerdown", () => {
+            this.uiEvents.emit(UiEvents.RELOAD_GAME);
+			this.destroyUI();
+        });
+		this.reloadButton.on("pointerover", () => this.reloadButtonActive = true);
+		this.reloadButton.on("pointerout", () => this.reloadButtonActive = false);
+        this.addChild(this.reloadButton);
+	}
+
+	private destroyUI(): void {
+		this.parent.removeChild(this);
+        this.destroy();
 	}
 }
