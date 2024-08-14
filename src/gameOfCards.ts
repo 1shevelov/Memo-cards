@@ -26,7 +26,7 @@ export class GameOfCards {
     }
 
     private generateDeck(): void {
-        const pairsNum = getRandomIntInclusive(MAX_DIFF_PICS / 2, MAX_DIFF_PICS / 2);
+        const pairsNum = getRandomIntInclusive(MAX_DIFF_PICS / 2, MAX_DIFF_PICS);
         this.pairs2Found = pairsNum;
         const deck: number[] = [];
         for (let i = 0; i < pairsNum; i++) {

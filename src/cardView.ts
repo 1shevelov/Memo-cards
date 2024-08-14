@@ -12,6 +12,10 @@ export class CardView extends Container {
     private cardIndex = ErrorValues.NO_CARD_INDEX;
     private isFaceUp = false;
 
+    private isBeingAnimated = false;
+    private readonly AnimationCompletedEvent = "animation_completed";
+    private animationEvents = new EventEmitter();
+
     constructor(
         events: EventEmitter,
         textureUrl: string,
@@ -25,15 +29,16 @@ export class CardView extends Container {
         this.createCard(textureUrl);
         this.interactive = true;
         this.on('pointerdown', this.handleCardClick, this);
-        this.createCard(textureUrl);
-        // console.log(textureUrl, index);
+
+        gsap.registerPlugin(PixiPlugin);
+        PixiPlugin.registerPIXI(PIXI);
     }
 
     public changeSize(size: PointData): void {
         this.cardImage.scale = Math.min(size.x / this.cardImage.width, size.y / this.cardImage.height);
-        this.cardBackImage.scale = Math.min(size.x / this.cardBackImage.width, size.y / this.cardBackImage.height);
+        this.cardBackImage.scale = this.cardImage.scale; //Math.min(size.x / this.cardBackImage.width, size.y / this.cardBackImage.height);
         // console.log(size.x, size.y, this._cardBackImage.scale.x, this._cardBackImage.width, this._cardBackImage.height);
-        this.setSize(this.cardBackImage.width, this.cardBackImage.height);
+        // this.setSize(this.cardBackImage.width, this.cardBackImage.height);
     }
 
     public changePosition(pos: PointData): void {
@@ -42,30 +47,75 @@ export class CardView extends Container {
     }
 
     public show(): void {
+        if (this.isBeingAnimated) {
+            this.animationEvents.once(this.AnimationCompletedEvent, this.show, this);
+            return;
+        }
+
+        this.isFaceUp = true;
         const startingScaleX = this.cardBackImage.scale.x;
         const showTL = gsap.timeline();
-        gsap.registerPlugin(PixiPlugin);
-        PixiPlugin.registerPIXI(PIXI);
+        this.isBeingAnimated = true;
         showTL.to(
             this.cardBackImage.scale,
-            { x: 0.2, duration: 0.3, ease: "power2.in", onComplete: () => { 
-                this.cardBackImage.visible = false;
-                this.cardImage.visible = true;
-            }}
+            { x: 0.2,
+                duration: 0.3,
+                ease: "power2.in",
+                onComplete: () => { 
+                    this.cardBackImage.visible = false;
+                    this.cardImage.visible = true;
+                }
+            }
         );
         showTL.fromTo(
             this.cardImage.scale,
             { x: 0.2 },
-            { x: this.cardImage.scale.x, duration: 0.3, ease: "power2.out", onComplete: () => {
-                this.cardBackImage.scale.x = startingScaleX;
-            }});
-        this.isFaceUp = true;
+            { x: this.cardImage.scale.x,
+                duration: 0.3,
+                ease: "power2.out",
+                onComplete: () => {
+                    this.cardBackImage.scale.x = startingScaleX;
+                    this.isBeingAnimated = false;
+                    this.animationEvents.emit(this.AnimationCompletedEvent);
+                }
+            }
+        );
     }
 
     public hide(): void {
-        this.cardImage.visible = false;
-        this.cardBackImage.visible = true;
+        if (this.isBeingAnimated) {
+            this.animationEvents.once(this.AnimationCompletedEvent, this.hide, this);
+            return;
+        }
+
         this.isFaceUp = false;
+        const startingScaleX = this.cardImage.scale.x;
+        const showTL = gsap.timeline();
+        this.isBeingAnimated = true;
+        showTL.to(
+            this.cardImage.scale,
+            { x: 0.2, 
+                duration: 0.2,
+                ease: "power2.in",
+                onComplete: () => { 
+                    this.cardImage.visible = false;
+                    this.cardBackImage.visible = true;
+                }
+            }
+        );
+        showTL.fromTo(
+            this.cardBackImage.scale,
+            { x: 0.2 },
+            { x: this.cardBackImage.scale.x,
+                duration: 0.2,
+                ease: "power2.out",
+                onComplete: () => {
+                    this.cardImage.scale.x = startingScaleX;
+                    this.isBeingAnimated = false;
+                    this.animationEvents.emit(this.AnimationCompletedEvent);
+                }
+            }
+        );
     }
 
     public remove(): void {
@@ -76,11 +126,12 @@ export class CardView extends Container {
     private createCard(textureUrl: string): void {
         this.cardImage = new Sprite(Assets.get(textureUrl));
         this.cardImage.anchor.set(0.5);
+        this.cardImage.visible = false;
         this.cardBackImage = new Sprite(Assets.get(this.backImageURL));
         this.cardBackImage.anchor.set(0.5);
         this.addChild(this.cardBackImage);
         this.addChild(this.cardImage);
-        this.hide();
+        // this.hide();
     }
 
     private handleCardClick(): void {
