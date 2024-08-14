@@ -1,5 +1,8 @@
 import { Assets, Sprite, Container, PointData, Application, EventEmitter } from 'pixi.js';
+import * as PIXI from 'pixi.js'; 
 import { GameEvents, ErrorValues } from './config';
+import { gsap } from 'gsap';
+import { PixiPlugin } from 'gsap/all';
 
 export class CardView extends Container {
     private events: EventEmitter;
@@ -39,8 +42,23 @@ export class CardView extends Container {
     }
 
     public show(): void {
-        this.cardImage.visible = true;
-        this.cardBackImage.visible = false;
+        const startingScaleX = this.cardBackImage.scale.x;
+        const showTL = gsap.timeline();
+        gsap.registerPlugin(PixiPlugin);
+        PixiPlugin.registerPIXI(PIXI);
+        showTL.to(
+            this.cardBackImage.scale,
+            { x: 0.2, duration: 0.3, ease: "power2.in", onComplete: () => { 
+                this.cardBackImage.visible = false;
+                this.cardImage.visible = true;
+            }}
+        );
+        showTL.fromTo(
+            this.cardImage.scale,
+            { x: 0.2 },
+            { x: this.cardImage.scale.x, duration: 0.3, ease: "power2.out", onComplete: () => {
+                this.cardBackImage.scale.x = startingScaleX;
+            }});
         this.isFaceUp = true;
     }
 
