@@ -3,12 +3,12 @@ Project:
 Logic:
 
 Visuals:
- - add game paused animation
  - add animation for:
-  - card turn
+  - cards matched
   - cards deal
   - victory
 
 Later:
  - allow to choose difficulty on start
  - more card faces
+ - field layouts for var number of cards

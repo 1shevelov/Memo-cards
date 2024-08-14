@@ -1,2 +1,2 @@
 # Memo-cards
-Typescript+PixiJS8
+Typescript + PixiJS 8 + GSAP 3
