@@ -3,6 +3,7 @@ import { CardView } from "./cardView";
 import { CARDS_SHOW_DELAY, GameEvents, shuffleArray } from "./config";
 import { getAllFaces } from "./assets";
 import { UiEvents } from "./gameUI";
+import { CARDS_MATCHED_SHOW_DELAY, CARDS_UNMATCHED_SHOW_DELAY } from "./visualsConfig";
 
 export class FieldView extends Container {
 	private readonly VERT_BORDER = [100, 100];
@@ -86,19 +87,27 @@ export class FieldView extends Container {
 			this.openedCardsIndices = [];
 			this.isDelayedHide = false;
 			this.delayTimer = null;
-		}, CARDS_SHOW_DELAY);
+		}, CARDS_UNMATCHED_SHOW_DELAY * 1000);
 	}
 
 	private handleCardsMatched(openedCardsIndices: number[]): void {
 		// console.log(`Cards matched: ${openedCardsIndices.join(", ")} !`);
-		this.isDelayedRemove = true;
+		// this.isDelayedRemove = true;
 		this.openedCardsIndices = openedCardsIndices;
 		this.delayTimer = setTimeout(() => {
-			openedCardsIndices.forEach((i) => this.field[i].remove());
+		// openedCardsIndices.forEach((i) => this.field[i].matchAndRemove());
+			if (openedCardsIndices.length !== 2)
+				console.error("Not supporting match of 3 or more currently");
+			this.field[openedCardsIndices[0]].zIndex = 1;
+			this.field[openedCardsIndices[0]]
+				.matchAndRemove(this.field[openedCardsIndices[1]].getPosition());
+			this.field[openedCardsIndices[1]].zIndex = 1;
+			this.field[openedCardsIndices[1]]
+				.matchAndRemove(this.field[openedCardsIndices[0]].getPosition());
 			this.openedCardsIndices = [];
-			this.isDelayedRemove = false;
+			// this.isDelayedRemove = false;
 			this.delayTimer = null;
-		}, CARDS_SHOW_DELAY);
+		}, CARDS_MATCHED_SHOW_DELAY * 1000);
 	}
 
 	private removeDelay(cardIndex: number): void {
@@ -111,7 +120,8 @@ export class FieldView extends Container {
                 this.openedCardsIndices.forEach((i) => this.field[i].hide());
             } else if (this.isDelayedRemove) {
 				this.isDelayedRemove = false;
-				this.openedCardsIndices.forEach((i) => this.field[i].remove());
+				//TODO: rewrite as now match animation will be played at once
+				// this.openedCardsIndices.forEach((i) => this.field[i].remove());
 			}
 			this.openedCardsIndices = [];
 		}

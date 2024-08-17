@@ -1,0 +1,7 @@
+// All timings are in seconds
+
+export const CARD_REVEAL_ANIMATION_DURATION = 0.25;
+export const CARD_HIDE_ANIMATION_DURATION = 0.15;
+
+export const CARDS_UNMATCHED_SHOW_DELAY = 2.5;
+export const CARDS_MATCHED_SHOW_DELAY = CARD_REVEAL_ANIMATION_DURATION;

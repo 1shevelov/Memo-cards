@@ -3,6 +3,7 @@ import * as PIXI from 'pixi.js';
 import { GameEvents, ErrorValues } from './config';
 import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/all';
+import { CARD_HIDE_ANIMATION_DURATION, CARD_REVEAL_ANIMATION_DURATION } from './visualsConfig';
 
 export class CardView extends Container {
     private events: EventEmitter;
@@ -41,6 +42,10 @@ export class CardView extends Container {
         // this.setSize(this.cardBackImage.width, this.cardBackImage.height);
     }
 
+    public getPosition(): PointData {
+        return { x: this.x, y: this.y };
+    }
+
     public changePosition(pos: PointData): void {
         this.x = pos.x;
         this.y = pos.y;
@@ -58,8 +63,9 @@ export class CardView extends Container {
         this.isBeingAnimated = true;
         showTL.to(
             this.cardBackImage.scale,
-            { x: 0.2,
-                duration: 0.3,
+            { 
+                x: 0.2,
+                duration: 0.25,
                 ease: "power2.in",
                 onComplete: () => { 
                     this.cardBackImage.visible = false;
@@ -70,8 +76,9 @@ export class CardView extends Container {
         showTL.fromTo(
             this.cardImage.scale,
             { x: 0.2 },
-            { x: this.cardImage.scale.x,
-                duration: 0.3,
+            { 
+                x: this.cardImage.scale.x,
+                duration: CARD_REVEAL_ANIMATION_DURATION,
                 ease: "power2.out",
                 onComplete: () => {
                     this.cardBackImage.scale.x = startingScaleX;
@@ -94,8 +101,9 @@ export class CardView extends Container {
         this.isBeingAnimated = true;
         showTL.to(
             this.cardImage.scale,
-            { x: 0.2, 
-                duration: 0.2,
+            { 
+                x: 0.2, 
+                duration: CARD_HIDE_ANIMATION_DURATION,
                 ease: "power2.in",
                 onComplete: () => { 
                     this.cardImage.visible = false;
@@ -106,8 +114,9 @@ export class CardView extends Container {
         showTL.fromTo(
             this.cardBackImage.scale,
             { x: 0.2 },
-            { x: this.cardBackImage.scale.x,
-                duration: 0.2,
+            { 
+                x: this.cardBackImage.scale.x,
+                duration: 0.15,
                 ease: "power2.out",
                 onComplete: () => {
                     this.cardImage.scale.x = startingScaleX;
@@ -118,7 +127,74 @@ export class CardView extends Container {
         );
     }
 
-    public remove(): void {
+    public matchAndRemove(otherCardPos: PointData): void {
+        if (this.isBeingAnimated) {
+            this.animationEvents.once(
+                this.AnimationCompletedEvent,
+                () => this.matchAndRemove(otherCardPos),
+            );
+            return;
+        }
+
+        const PART1_DURATION = 0.5;
+        const PART2_DURATION = 1.5;
+        this.interactive = false;
+        const centerX = (this.x + otherCardPos.x) / 2;
+        const centerY = (this.y + otherCardPos.y) / 2;
+        
+        const matchTL = gsap.timeline();
+        matchTL.to(
+            this.cardImage.scale,
+            { 
+                x: this.cardImage.scale.x * 1.2,
+                y: this.cardImage.scale.y * 1.2,
+                duration: PART1_DURATION,
+                // ease: "power2.out",
+                yoyo: true,
+                repeat: 1,
+            }
+        );
+        matchTL.to(
+            this.cardImage,
+            { 
+                x: centerX - this.x,
+                y: centerY - this.y,
+                alpha: 0.7,
+                duration: PART2_DURATION,
+                delay: PART1_DURATION,
+                // ease: "power2.out",
+                // onComplete: () => {
+                ease: "power3.in",
+                // onComplete: () => { 
+                //     this.cardImage.visible = false;
+                //     this.cardBackImage.visible = true;
+                // }
+            }
+        );
+        matchTL.to(
+            this.cardImage.scale,
+            { 
+                x: this.cardImage.scale.x * 1.5,
+                y: this.cardImage.scale.y * 1.5,
+                duration: PART2_DURATION,
+                delay: -PART2_DURATION,
+                // ease: "power2.out",
+            }
+        );
+        // matchTL.fromTo(
+        //     this.cardBackImage.scale,
+        //     { x: 0.2 },
+        //     { x: this.cardBackImage.scale.x,
+        //         duration: 0.2,
+        //         ease: "power2.out",
+        //         onComplete: () => {
+        //             this.remove();
+        //         }
+        //     }
+        // );
+    }
+
+    private remove(): void {
         this.parent.removeChild(this);
         this.destroy();
     }
