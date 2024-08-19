@@ -1,6 +1,16 @@
 # Memo-cards
 Typescript + PixiJS 8 + GSAP 3
 
+## Implemented features:
+
+ - random number of card pairs up to 8
+ - game restarts on win
+ - moves counter
+ - cards reveal/hide animation
+ - queueing card animation, if user acts while playing
+ - cards match animation
+
+
 ## Startup
 
 ### Run on host OS

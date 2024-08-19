@@ -4,6 +4,7 @@ import { CARDS_SHOW_DELAY, GameEvents, shuffleArray } from "./config";
 import { getAllFaces } from "./assets";
 import { UiEvents } from "./gameUI";
 import { CARDS_MATCHED_SHOW_DELAY, CARDS_UNMATCHED_SHOW_DELAY } from "./visualsConfig";
+import { SizeData } from "./utils";
 
 export class FieldView extends Container {
 	private readonly VERT_BORDER = [100, 100];
@@ -98,12 +99,19 @@ export class FieldView extends Container {
 		// openedCardsIndices.forEach((i) => this.field[i].matchAndRemove());
 			if (openedCardsIndices.length !== 2)
 				console.error("Not supporting match of 3 or more currently");
+			const screenSize: SizeData = { width: this.app.screen.width, height: this.app.screen.height };
 			this.field[openedCardsIndices[0]].zIndex = 1;
 			this.field[openedCardsIndices[0]]
-				.matchAndRemove(this.field[openedCardsIndices[1]].getPosition());
+				.matchAndRemove(
+					this.field[openedCardsIndices[1]].getPosition(),
+					screenSize,
+				);
 			this.field[openedCardsIndices[1]].zIndex = 1;
 			this.field[openedCardsIndices[1]]
-				.matchAndRemove(this.field[openedCardsIndices[0]].getPosition());
+				.matchAndRemove(
+					this.field[openedCardsIndices[0]].getPosition(),
+					screenSize,
+				);
 			this.openedCardsIndices = [];
 			// this.isDelayedRemove = false;
 			this.delayTimer = null;
