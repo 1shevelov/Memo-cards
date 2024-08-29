@@ -1,10 +1,13 @@
 import { Application, Container, Assets, EventEmitter } from "pixi.js";
 import { CardView } from "./cardView";
-import { CARDS_SHOW_DELAY, GameEvents, shuffleArray } from "./config";
+import { GameEvents, shuffleArray } from "./config";
 import { getAllFaces } from "./assets";
 import { UiEvents } from "./gameUI";
-import { CARDS_MATCHED_SHOW_DELAY, CARDS_UNMATCHED_SHOW_DELAY } from "./visualsConfig";
+import { CARDS_MATCHED_SHOW_DELAY, CARDS_UNMATCHED_SHOW_DELAY, FIELD_APPEAR_DURATION, FIELD_SHAKE_DURATION } from "./visualsConfig";
 import { SizeData } from "./utils";
+import { gsap } from "gsap";
+import { PixiPlugin } from "gsap/all";
+import * as PIXI from "pixi.js";
 
 export class FieldView extends Container {
 	private readonly VERT_BORDER = [100, 100];
@@ -30,6 +33,7 @@ export class FieldView extends Container {
 		this.configureField(cards.length);
 		this.makeField(cards);
 		this.app.stage.addChild(this);
+		this.showField();
 
 		this.gameEvents.on(GameEvents.CARDS_NOT_MATCHED, this.handleCardsNotMatched, this);
 		this.gameEvents.on(GameEvents.CARDS_MATCHED, this.handleCardsMatched, this);
@@ -61,7 +65,7 @@ export class FieldView extends Container {
 		let y: number;
 		let card: CardView;
 		let cardsIndex = 0;
-		// TODO:
+
 		for (let i = 0; i < this.cols; i++) {
 			for (let j = 0; j < this.rows; j++) {
 				x = this.HOR_BORDER[0] + cardSizeX * 0.5 + i * cardSizeX * (1 + this.GAP);
@@ -73,10 +77,58 @@ export class FieldView extends Container {
 				card.changeSize({ x: cardSizeX, y: cardSizeY });
 				card.changePosition({ x, y });
 				this.addChild(card);
+				card.alpha = 0;
 				this.field.push(card);
 				if (++cardsIndex >= cards.length) break;
 			}
 		}
+	}
+
+	private showField(): void {
+		gsap.registerPlugin(PixiPlugin);
+		PixiPlugin.registerPIXI(PIXI);
+
+		const MaxAngle = 0.3;
+		const showTL = gsap.timeline();
+		showTL.to(this.field, {
+			alpha: 1.0,
+			duration: FIELD_APPEAR_DURATION,
+			ease: "power2.in",
+			stagger: {
+				each: 0.15,
+				from: "center",
+				grid: [this.cols, this.rows],
+			},
+		});
+		showTL.to(
+			this.field,
+			{
+				rotation: -MaxAngle,
+				duration: FIELD_SHAKE_DURATION / 4,
+			}
+		);
+		showTL.fromTo(
+			this.field,
+			{ rotaion: -MaxAngle },
+			{
+				rotation: MaxAngle,
+				duration: FIELD_SHAKE_DURATION,
+				ease: "power1.in",
+				yoyo: true,
+				repeat: 3,
+				onComplete: () => {
+					// 	TODO: add signal to allow cards interaction
+					// this.animationEvents.emit(this.AnimationCompletedEvent);
+				},
+			}
+		);
+		showTL.to(
+			this.field,
+			{
+				rotation: 0,
+				duration: FIELD_SHAKE_DURATION / 4,
+			}
+		);
 	}
 
 	private handleCardsNotMatched(openedCardsIndices: number[]): void {
